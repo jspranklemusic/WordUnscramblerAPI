@@ -28,7 +28,6 @@ function returnPossibilities(word){
         iterateOnce(word)
         console.log(combinations.length)
         for(let i=0;i<combinations.length;i++){
-            console.log(i)
             iterateOnce(combinations[i])
         }
         return combinations
