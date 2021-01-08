@@ -98,7 +98,9 @@ app.get('/',(req,res)=>{
      <h1>Word Unscrambler API</h1>
   <p><em>Algorithms and API by Josiah Sprankle</em></p>
   <br>
+  
   <p>
+  <a href="https://github.com/jspranklemusic/WordUnscramblerAPI">Github Page</a><br><br>
     This is an API to unscramble words, return all possibilities and substrings of a string, and search words in a dictionary. I did not author the "Webster's Unabridged English Dictionary" portion, but the algorithms to parse the dictionary and return results in JSON format. To use this API, the routes are:
 <br><br>
 /dictionary/yourword --- (returns the definitions)
