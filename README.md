@@ -1,7 +1,4 @@
-# WordUnscramblerAPI
-An API to parse a dictionary, unscramble words, and return substring combinations.
-
-The working API is available here: https://WordUnscramblerAPI.josiahsprankle.repl.co
+Endpoint is available here: https://WordUnscramblerAPI.josiahsprankle.repl.co
 
 This is an API to unscramble words, return all possibilities and substrings of a string, and search words in a dictionary. To use this API, the routes are:
 
