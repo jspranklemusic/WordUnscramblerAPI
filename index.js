@@ -1,6 +1,8 @@
 const app = require('express')()
 const fs = require('fs')
 const bodyParser= require('body-parser')
+const axios = require('axios').default;
+const cheerio = require('cheerio');
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded())
@@ -59,6 +61,36 @@ function returnPossibilities(word){
     })
     return words
 }
+
+//to get actual definitions (not just to check if word exists) the word must be checked by scraping a dictionary.
+async function scrapeDictionary(word="camp"){
+    const response = await axios.get('https://www.merriam-webster.com/dictionary/'+word).catch(err=>{
+    });
+ 
+    if(!response) return;
+    const obj = {};
+    const $ = cheerio.load(response.data);
+    word = [];
+    let inc = 1;
+    while(true){
+      const element = $("#dictionary-entry-"+inc);
+      if(element.length){
+        let $ = cheerio.load( element.html() );
+        $(".dtText").each((ind, elem)=>{
+          word.push($(elem).text().replace(/\n|\s\s+/g," "))
+        })
+        inc++;
+      }else{
+        break;
+      }
+    }
+  if(word.length == 0){
+    return null;
+  }else{
+    return word;
+  }
+}
+
     
 function parseDictionary(jumbledWords,dict){
     //jumbledWords is an array of arrays, with each array having all
@@ -72,7 +104,7 @@ function parseDictionary(jumbledWords,dict){
     return validWords
 }
 
-
+//the dictionary does not contain definitions, only a word list. 
 let rawdata = fs.readFileSync('dictionary.json');
 const dictionary = JSON.parse(rawdata);
 
@@ -100,30 +132,57 @@ app.get('/',(req,res)=>{
   
   <p>
   <a href="https://github.com/jspranklemusic/WordUnscramblerAPI">Github Page</a><br><br>
-    This is an API to unscramble words, return all possibilities and substrings of a string, and search words in a dictionary. I did not author the "Webster's Unabridged English Dictionary" portion, but the algorithms to parse the dictionary and return results in JSON format. To use this API, the routes are:
+    This is an API to unscramble words, return all possibilities and substrings of a string, and search words in a dictionary. To use this API, the routes are:
 <br><br>
 /dictionary/yourword --- (returns the definitions)
 <br><br>
 /trees/yourword --- (returns every single possible combination, substring, and slice of your word in every possible order.... this is a very expensive algorithm, so I have limited the usage to 7 characters.)
 <br><br>
-/unscramble/yourword --- (this runs the possibilities against the dictionary and returns the results)
+/unscramble/yourword --- This will return all possible words, but will include a couple of non-stardard words and abbreviations.
 <br><br>
-NOTE: I found some weird definitions in this dictionary that aren't really usuable in a scrabble game, and this dictionary also does not do plurals, word mutations, or most slang.
-<br><br>
-Otherwise, everything works as expected. Enjoy!
+/deep-unscramble/yourword --- This will return all possible words and check them against the Merriam-Webster dictionary website to ensure that the words are valid. This takes much longer, but will be more accurate if you are patient.
+<br>
+
     </p>
   </body>
  
   `))
 })
 
-app.get('/unscramble/:word',(req,res)=>{
+app.get('/unscramble/:word',async (req,res)=>{
     if(req.params.word.length>7){
         return res.json("Whoops! Your word has to be 7 letters max.")
     }
     const possibilities =  returnPossibilities(req.params.word)
-    res.json(parseDictionary(possibilities,dictionary))
+    const fullwords = parseDictionary(possibilities,dictionary);
+    res.json(fullwords);
 })
+
+app.get("/deep-unscramble/:word",async(req,res)=>{
+   if(req.params.word.length>7){
+        return res.json("Whoops! Your word has to be 7 letters max.")
+    }
+    const possibilities =  returnPossibilities(req.params.word)
+    const fullwords = parseDictionary(possibilities,dictionary);
+    const newArr = []
+
+    async function filterThroughRequests(arr=[], i=0, newArr=[]){
+      if(i >= arr.length){
+        return newArr;
+      }else{
+        const response = await axios.get('https://www.merriam-webster.com/dictionary/'+arr[i]).catch(err=>{});
+        if(response){
+          newArr.push(arr[i])
+        }
+        return filterThroughRequests(arr, i+1, newArr)
+      }
+    }
+
+    const filteredResults = await filterThroughRequests(fullwords);
+    res.json(filteredResults);
+})
+
+
 
 app.get('/trees/:word',(req,res)=>{
     if(req.params.word.length>7){
@@ -136,31 +195,8 @@ app.get('/trees/:word',(req,res)=>{
 app.get('/dictionary/:word', async (req,res)=>{
     let result = dictionary[req.params.word]
     if(result){
-        let regex = /\d\.\s/g
-        let matches = result.match(regex)
-        if(matches){
-            matches.forEach(match=>{
-                result = result.replace(match, "\n\n"+match)
-            })
-        }
-        
-        res.set('Content-Type', 'text/html');
-        res.send(Buffer.from(`
-        <style>
-            h2{
-                text-align:center;
-            }
-            p{
-                width:50%;
-                min-width:200px;
-                margin:auto;
-                white-space:pre-line;
-            }
-        </style>
-        <h2>${req.params.word}:</h2>
-        <p>${result}</p>
-        
-        `));
+        const word = await scrapeDictionary(req.params.word);
+        res.json(word);
         
     }else{
         res.send("Hmmm... I can't find that word!")

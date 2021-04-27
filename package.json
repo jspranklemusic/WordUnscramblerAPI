@@ -4,7 +4,9 @@
   "description": "This repository is for an API that allows the user to search words against a dictionary, return all possibilities and substring of a character set, and then run them against the dictionary.",
   "main": "index.js",
   "dependencies": {
+    "axios": "^0.21.1",
     "body-parser": "^1.19.0",
+    "cheerio": "^1.0.0-rc.6",
     "express": "^4.17.1"
   },
   "devDependencies": {},
