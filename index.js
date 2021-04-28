@@ -1,9 +1,11 @@
-const app = require('express')()
+const express = require('express')
+const app = express();
 const fs = require('fs')
 const bodyParser= require('body-parser')
 const axios = require('axios').default;
 const cheerio = require('cheerio');
 
+app.use(express.static('public'))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded())
 
@@ -91,6 +93,7 @@ async function scrapeDictionary(word="camp"){
   }
 }
 
+
     
 function parseDictionary(jumbledWords,dict){
     //jumbledWords is an array of arrays, with each array having all
@@ -109,46 +112,11 @@ let rawdata = fs.readFileSync('dictionary.json');
 const dictionary = JSON.parse(rawdata);
 
 app.get('/',(req,res)=>{
-  res.set("Content-Type","text/html")
-  res.send(Buffer.from(`
-  <style>
-  h1{
-    text-align:center;
-  }
-  body{
-    padding:2rem;
-  }
-  p{
-    min-width:300px;
-    width:50%;
-    margin:auto;
-  }
-  </style>
-  <title>Word Unscrambler API</title>
-  <body>
-     <h1>Word Unscrambler API</h1>
-  <p><em>Algorithms and API by Josiah Sprankle</em></p>
-  <br>
-  
-  <p>
-  <a href="https://github.com/jspranklemusic/WordUnscramblerAPI">Github Page</a><br><br>
-    This is an API to unscramble words, return all possibilities and substrings of a string, and search words in a dictionary. To use this API, the routes are:
-<br><br>
-/dictionary/yourword --- (returns the definitions)
-<br><br>
-/trees/yourword --- (returns every single possible combination, substring, and slice of your word in every possible order.... this is a very expensive algorithm, so I have limited the usage to 7 characters.)
-<br><br>
-/unscramble/yourword --- This will return all possible words, but will include a couple of non-stardard words and abbreviations.
-<br><br>
-/deep-unscramble/yourword --- This will return all possible words and check them against the Merriam-Webster dictionary website to ensure that the words are valid. This takes much longer, but will be more accurate if you are patient.
-<br>
-
-    </p>
-  </body>
- 
-  `))
+  res.sendFile("index.html");
 })
 
+
+//unscramble an individual word
 app.get('/unscramble/:word',async (req,res)=>{
     if(req.params.word.length>7){
         return res.json("Whoops! Your word has to be 7 letters max.")
@@ -158,6 +126,10 @@ app.get('/unscramble/:word',async (req,res)=>{
     res.json(fullwords);
 })
 
+
+
+//get all the possibilities, check them against the messy dictionary,
+//and then send a bunch of http requests to check them against the official dictionary.
 app.get("/deep-unscramble/:word",async(req,res)=>{
    if(req.params.word.length>7){
         return res.json("Whoops! Your word has to be 7 letters max.")
@@ -184,6 +156,8 @@ app.get("/deep-unscramble/:word",async(req,res)=>{
 
 
 
+
+//get every possible substring combination of a string
 app.get('/trees/:word',(req,res)=>{
     if(req.params.word.length>7){
         return res.json("Whoops! Your word has to be 7 letters max.")
@@ -192,6 +166,43 @@ app.get('/trees/:word',(req,res)=>{
     
 })
 
+
+
+//check if an array of words are scrabble words
+app.post('/scrabble',async(req,res)=>{
+  if(!req.body | !req.body.words | req.body.words.length){
+    res.status(400).send("Must have a valid array with a length greater than 0.")
+  }
+
+  async function checkScrabble(arr=[], i = 0, newArr=[]){
+    if(i >= arr.length){
+      return newArr;
+    }
+    const response = await axios.get('https://scrabblewordfinder.org/dictionary/'+arr[i]);
+    const $ = cheerio.load(response.data);
+    const result = $('h3').text();
+    
+    if(result == "Yes") {
+      newArr.push(arr[i]);
+      res.write(arr[i])
+    }
+    return checkScrabble(arr, i+1, newArr);
+  }
+
+  const scrabbleWords = await checkScrabble(req.body.words)
+
+  res.end();
+})
+
+
+
+//check if an individual word is a scrabble word
+app.get('/scrabble/:word',async(req,res)=>{
+  res.send(req.body.word);
+})
+
+
+//check if a word is in the Merriam Webster Dictionary via web scraping
 app.get('/dictionary/:word', async (req,res)=>{
     let result = dictionary[req.params.word]
     if(result){

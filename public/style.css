@@ -1,0 +1,134 @@
+*{
+  margin:0;
+  padding:0;
+  position: relative;
+  box-sizing:border-box;
+  font-family:sans-serif;
+  line-height:1.3rem;
+  
+}
+
+body{
+  color:rgb(31, 31, 31);
+}
+
+h1{
+    text-align:center;
+  }
+  body{
+    padding:2rem;
+  }
+  ul,p{
+    min-width:270px;
+    width:50%;
+    margin:auto;
+  }
+
+.description{
+  text-align:center;
+  color:grey;
+  margin:0.5rem auto;
+}
+
+.form-container{
+  margin:2rem auto;
+  width:250px;
+  display:flex;
+  justify-content: stretch;
+  align-items:center;
+}
+
+input{
+  flex:1;
+  font-size:1rem;
+  padding:0.35rem 0.5rem;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+  border:2px solid rgb(201, 201, 201);
+  border-right:transparent;
+  outline:transparent;
+  transition:0.2s;
+  
+}
+
+code{
+  background:rgb(209, 209, 209);
+  color:rgb(66, 66, 66);
+  font-family:monospace;
+  padding:0.2rem;
+  font-weight:100;
+  font-size:1rem;
+}
+
+input:focus{
+  border:2px solid green;
+  background:rgb(210, 235, 210);
+  border-right:transparent;
+}
+
+.btn{
+  font-size:1rem;
+  padding:0.45rem 0.7rem;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+  color:white;
+  border:none;
+  cursor: pointer;
+}
+
+.green{
+  background: green;
+}
+.red{
+  background: red;
+}
+
+.green:hover{
+  background:rgb(6, 107, 6);
+}
+
+.green:active{
+  background:rgba(11, 104, 11, 0.74);
+}
+
+.red:hover{
+  background:rgb(206, 9, 9);
+}
+
+.red:active{
+  background:rgba(151, 9, 9, 0.767);
+}
+
+.fetching{
+  display:block;
+  margin:1rem auto;
+  width:max-content;
+  padding:0.5rem 1rem;
+  border-radius:10px;
+  animation:fading 1s infinite;
+}
+li{
+  padding:0.25rem;
+  margin:0.5rem;
+  margin-left:1.5rem;
+  border-bottom:1px solid rgb(226, 226, 226);
+}
+ul{
+  padding:1rem;
+}
+h3{
+  text-align:center;
+}
+
+@keyframes fading{
+  0%{
+    opacity:0.4;
+  }
+  50%{
+    opacity:0.8;
+  }
+  100%{
+    opacity:0.4;
+  }
+}
+

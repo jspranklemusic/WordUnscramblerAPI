@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word Unscrambler</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/vue@next"></script>
+  <script defer src="script.js"></script>
+
+</head>
+  <body>
+
+    <h1>Word Unscrambler</h1>
+  <p class="description"><em>Algorithms and API by Josiah Sprankle</em></p>
+  <br>
+  
+  <p>
+  <a href="https://github.com/jspranklemusic/WordUnscramblerAPI">Github Page</a><br><br>
+    This is an API to unscramble words, return all possibilities and substrings of a string, and search words in a dictionary. To use this API, the routes are:
+<br><br>
+<code>/dictionary/yourword</code> --- (returns the definitions)
+<br><br>
+<code>/trees/yourword</code> --- (returns every single possible combination, substring, and slice of your word in every possible order.... this is a very expensive algorithm, so I have limited the usage to 7 characters.)
+<br><br>
+<code>/unscramble/yourword</code> --- This will return all possible words, but will include a couple of non-stardard words and abbreviations.
+<br><br>
+<code>/deep-unscramble/yourword</code> --- This will return all possible words and check them against the Merriam-Webster dictionary website to ensure that the words are valid. This takes much longer, but will be more accurate if you are patient.
+<br>
+
+    </p>
+ <div id="app">
+
+       <form class="form-container" @submit.prevent="fetchUnscramble">
+            <input v-model="input" :placeholder="placeholder" type="text">
+          <button class="btn green">Unscramble</button>
+       </form>
+      
+       <h3 class="gradient fetching" v-if="fetching">
+         ...Working on your results...
+       </h3>
+
+
+     <ul v-if="results.length">
+       <h3>{{results.length}} Results</h3>
+       <li v-for="result in results">
+         {{result}}
+       </li>
+
+     </ul>
+
+  
+   </div>
+  </body>
+ 
+</html>
